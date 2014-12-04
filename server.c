@@ -48,7 +48,6 @@ main (int argc, char *argv[])
 	struct sockaddr_in server, client_addr;
 	socklen_t sin_size;
 	int *args = NULL;
-	int server_port_num = atoi (argv[1]);
 	int i = 0;
 	fd_set master;
 	fd_set read_fds;
@@ -65,6 +64,7 @@ main (int argc, char *argv[])
 		return 0;
 	}
 
+	int server_port_num = atoi (argv[1]);
 	/* Thread which will run periodically and print the output */
 	pthread_create (&periodic_thread, NULL, periodic_print_thread,
 			(void *) args);
