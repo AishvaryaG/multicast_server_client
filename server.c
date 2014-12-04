@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
     pthread_t t2[MAX_NUM_OF_CLIENTS];
     pthread_t periodic_thread;
     int *args = NULL;
-    int server_port_num = atoi(argv[1]); 
 	int j;
 
     if (argc != 2) {
@@ -58,6 +57,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    int server_port_num = atoi(argv[1]); 
     /* Thread which will run periodically and print the output*/
     pthread_create(&periodic_thread, NULL, periodic_print_thread,(void *)args);
     

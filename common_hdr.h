@@ -12,8 +12,8 @@
 #define MAX_NUM_OF_CLIENTS 10
 #define MAXDATASIZE 100 
 #define MAXBUFFER 2048
+#define MAXDESC 2048
 #define MAGIC 0xCA0000CB
-
 
 
 typedef enum {
@@ -21,6 +21,11 @@ typedef enum {
 	MSG_HELLO,
 	MSG_QUIT,
 } pkt_type;
+
+typedef enum {
+	TASK_SUM = 1,
+	TASK_PRIME,
+} task_type_t;
 
 
 struct pkt {

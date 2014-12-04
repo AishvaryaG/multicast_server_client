@@ -94,7 +94,7 @@ static void *get_in_addr(struct sockaddr *sa)
 
 void sigint_handler(int s)
 {
-   	pkt_send(sockfd, MSG_QUIT, 0, 0);
+	pkt_send(sockfd, MSG_QUIT, 0, 0);
     close(sockfd);
     printf("Thanks for running the client. Exiting...\n");
     exit(0);

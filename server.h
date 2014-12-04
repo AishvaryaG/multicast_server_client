@@ -44,4 +44,20 @@ void quit_handler();
 void *periodic_print_thread(void *t_args);
 void *client_handler_thread(void *t_args);
 
+/* Task management */
+
+struct task_info {
+	int task_id;
+	task_type_t task_type;
+	char desc[MAXDESC];
+	struct timeval start_time;
+	struct timeval end_time;
+	void *input_dataset;
+};
+
+
+
+
+
+
 #endif
