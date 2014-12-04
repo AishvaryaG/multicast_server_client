@@ -13,3 +13,8 @@ How to run?
 4. Select the multicast group for the client to join. Add additional messages.
 
 The server will continue to cater to all clients and will periodically display all messages
+
+Phase 2
+-------
+1. Add heartbeat support between client & server
+2. Assign tasks to clients & map them back
