@@ -29,11 +29,11 @@ void *periodic_print_t(void *t_args);
 
 
 /* Server packet handlers */
-void join_handler(thread_arguments *args,
+void join_handler(
 			const char *payload, const size_t pyld_size, 
 			const pkt_type type);
 
-void hello_handler(thread_arguments *args,
+void hello_handler(
 			const char *payload, const size_t pyld_size, 
 			const pkt_type type);
 
