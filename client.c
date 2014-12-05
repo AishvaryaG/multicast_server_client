@@ -18,44 +18,44 @@ int sockfd;
 
 /* Prototypes */
 static void *get_in_addr(struct sockaddr *sa);
-void sigint_handler(int s);
-void init_signal_handler();
-int init_socket(int argc, char *argv[]);
+static void sigint_handler(int s);
+static void init_signal_handler();
+static int init_socket(int argc, char *argv[]);
 
-
-int main(int argc, char *argv[])
-
+int 
+main(int argc, char *argv[])
 {
-	int numbytes;
-	char buf[MAXBUFFER];	
+    int numbytes;
+    char buf[MAXBUFFER];    
 
     init_signal_handler();
 
-	if (init_socket(argc, argv) != 0) {
+    if (init_socket(argc, argv) != 0) {
         fprintf(stderr,"Unable to setup client (socket, bind, listen)\n");
         exit(1);
-	}
+    }
 
     printf("Select the multicast group which you want to join as one of these %s : ", argv[3]);
-	scanf("%s", buf);
+    scanf("%s", buf);
     numbytes = pkt_send(sockfd, MSG_JOIN, buf,strlen(buf));
 
     if (-1 == numbytes)
         perror("send");
 
-	while (1) {
-		printf("Type a message. (Max 50 chars):\n");
-		scanf("%50s", buf);
-    	numbytes = pkt_send(sockfd, MSG_HELLO, buf, strlen(buf));
-    	if (-1 == numbytes) {
-        	perror("send");
-		}	
-	}	
+    while (1) {
+        printf("Type a message. (Max 50 chars):\n");
+        scanf("%50s", buf);
+        numbytes = pkt_send(sockfd, MSG_HELLO, buf, strlen(buf));
+        if (-1 == numbytes) {
+            perror("send");
+        }    
+    }    
 
     return 0;
 }
 
-int init_socket(int argc, char *argv[]) 
+static int 
+init_socket(int argc, char *argv[]) 
 {
     struct addrinfo hints, *servinfo, *p;
     char s[INET6_ADDRSTRLEN];
@@ -63,9 +63,9 @@ int init_socket(int argc, char *argv[])
 
     if (argc != 4) {
         fprintf(stderr,"usage: %s <server-port-num> <server-hostname>"
-				" <comma-separated-groups>\n",
-				argv[0]);
-       	return -1; 
+                " <comma-separated-groups>\n",
+                argv[0]);
+        return -1; 
     }
 
     memset(&hints, 0, sizeof hints);
@@ -73,10 +73,10 @@ int init_socket(int argc, char *argv[])
     hints.ai_socktype = SOCK_STREAM;
     if ((rv = getaddrinfo(argv[2], argv[1], &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return -1;
+        return -1;
     }
 
-	/* Any one of these could work! */
+    /* Any one of these could work! */
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
             perror("client: socket");
@@ -92,16 +92,17 @@ int init_socket(int argc, char *argv[])
 
     if (p == NULL) {
         fprintf(stderr, "client: failed to connect\n");
-       	return -1; 
+        return -1; 
     }
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
     printf("client: connecting to %s\n", s);
     freeaddrinfo(servinfo); // all done with this structure
 
-	return 0;
+    return 0;
 }
 
-static void *get_in_addr(struct sockaddr *sa)
+static void 
+*get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET)
     {
@@ -111,15 +112,17 @@ static void *get_in_addr(struct sockaddr *sa)
 }
 
 
-void sigint_handler(int s)
+static void 
+sigint_handler(int s)
 {
-	pkt_send(sockfd, MSG_QUIT, 0, 0);
+    pkt_send(sockfd, MSG_QUIT, 0, 0);
     close(sockfd);
     printf("Thanks for running the client. Exiting...\n");
     exit(0);
 }
 
-void init_signal_handler()
+static void 
+init_signal_handler()
 {
     struct sigaction sa;
 
