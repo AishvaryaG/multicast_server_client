@@ -20,7 +20,7 @@ int sockfd;
 static void *get_in_addr(struct sockaddr *sa);
 void sigint_handler(int s);
 void init_signal_handler();
-int init_server_socket(int argc, char *argv[]);
+int init_socket(int argc, char *argv[]);
 
 
 int main(int argc, char *argv[])
@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
 
     init_signal_handler();
 
-	if (init_server_socket(argc, argv) != 0) {
-        fprintf(stderr,"Unable to setup server (socket, bind, listen)\n");
+	if (init_socket(argc, argv) != 0) {
+        fprintf(stderr,"Unable to setup client (socket, bind, listen)\n");
         exit(1);
 	}
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int init_server_socket(int argc, char *argv[]) 
+int init_socket(int argc, char *argv[]) 
 {
     struct addrinfo hints, *servinfo, *p;
     char s[INET6_ADDRSTRLEN];
