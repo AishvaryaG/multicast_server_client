@@ -19,7 +19,7 @@ typedef struct
 } thread_arguments;
 
 extern int num_of_clients[2];
-extern thread_arguments thread_args[MAX_NUM_OF_CLIENTS];
+extern thread_arguments thread_args[MAXNUMCLIENTS];
 extern pthread_mutex_t num_of_active_clients_lock;
 extern group_info *g_head;
 
@@ -39,10 +39,10 @@ void hello_handler(
 
 void quit_handler();
 
-
 /* Thread functions */
-void *periodic_print_thread(void *t_args);
-void *client_handler_thread(void *t_args);
+extern void * periodic_print_thread_fn(void *t_args);
+extern void * user_interactor_thread_fn(void *t_args);
+void * client_handler_thread(void *t_args);
 
 /* Task management */
 
@@ -56,6 +56,8 @@ struct task_info {
 };
 
 
+/* Tasks */
+void task_menu();
 
 
 

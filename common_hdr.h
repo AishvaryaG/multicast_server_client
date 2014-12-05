@@ -9,11 +9,12 @@
 #include <stdio.h>
 
 #define NOFLAGS 0
-#define MAX_NUM_OF_CLIENTS 10
+#define MAXNUMCLIENTS 10
 #define MAXDATASIZE 100 
 #define MAXBUFFER 2048
 #define MAXDESC 2048
 #define MAGIC 0xCA0000CB
+#define MAXDATEBUF 25
 
 
 typedef enum {

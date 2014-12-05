@@ -17,13 +17,15 @@
 
 
 /* global variables */
-group_info *g_head = null;
+group_info *g_head = NULL;
 int num_of_clients[2] = { 0, 0 };
 pthread_t periodic_thread;
+pthread_t user_interactor_thread;
 int server_sockfd;
 
 void list_add (group_info ** head, group_info ** new_node);
-static void init_periodic_print();
+void init_periodic_print();
+void init_user_interactor();
 static int init_server_socket(int argc, char *argv[]);
 
 static void new_connection(fd_set *master_fds, int *fdmax);
@@ -39,32 +41,31 @@ main (int argc, char *argv[])
     int fdmax;
     int ret;
 
-    /* thread which will run periodically and print the output */
-
     init_periodic_print();
+    init_user_interactor();
     ret = init_server_socket(argc, argv);
     if (0 != ret) {
         fprintf(stderr, "unable to create socket!\n");
         exit(1);    
     }
 
-    fd_zero (&master);
-    fd_zero (&read_fds);
+    FD_ZERO (&master);
+    FD_ZERO (&read_fds);
     // add the listener to the master set
-    fd_set (server_sockfd, &master);
+    FD_SET (server_sockfd, &master);
     fdmax = server_sockfd;
-    g_head = null;
+    g_head = NULL;
 
     while (1)
     {
         read_fds = master;
-        if (select (fdmax + 1, &read_fds, null, null, null) == -1)
+        if (select (fdmax + 1, &read_fds, NULL, NULL, NULL) == -1)
         {
             perror ("select");
             exit (4);
         }
         for (i = 0; i <= fdmax; i++) {
-            if (fd_isset (i, &read_fds)) {
+            if (FD_ISSET (i, &read_fds)) {
                 if (i == server_sockfd) {
                     new_connection(&master, &fdmax);
                 } else {
@@ -80,7 +81,7 @@ void
 list_add (group_info ** head, group_info ** new_node)
 {
     group_info *temp;
-    if (*head == null)
+    if (*head == NULL)
     {
         *head = *new_node;
         return;
@@ -92,17 +93,25 @@ list_add (group_info ** head, group_info ** new_node)
     *head = *new_node;
 }
 
-static void 
+void 
 init_periodic_print()
 {
-    pthread_create (&periodic_thread, null, periodic_print_thread,
-            null);
+    pthread_create (&periodic_thread, NULL, periodic_print_thread_fn,
+            NULL);
 }
+
+void 
+init_user_interactor()
+{
+    pthread_create (&user_interactor_thread, NULL, user_interactor_thread_fn,
+            NULL);
+}
+
 
 static void 
 handle_client_recv(fd_set *master, int sock_id)
 {
-    char *rx_buffer = null;
+    char *rx_buffer = NULL;
     size_t rx_sz;
     pkt_type type;
     int ret;
@@ -112,7 +121,7 @@ handle_client_recv(fd_set *master, int sock_id)
     if (-1 == ret || !rx_buffer) {
         perror ("recv");
         close (sock_id);
-        fd_clr (sock_id, master);    // remove from master set
+        FD_CLR (sock_id, master);    // remove from master set
     } else {
 
         /* if recv() returns -1 then some error occured while receiving,
@@ -129,15 +138,15 @@ handle_client_recv(fd_set *master, int sock_id)
 
         switch (type)
         {
-            case msg_join:
+            case MSG_JOIN:
                 join_handler(rx_buffer, rx_sz, type);
                 break;
 
-            case msg_hello:
+            case MSG_HELLO:
                 hello_handler(rx_buffer, rx_sz, type);
                 break;
 
-            case msg_quit:
+            case MSG_QUIT:
                 quit_handler(); 
                 break;
 
@@ -160,15 +169,15 @@ init_server_socket(int argc, char *argv[])
     }
 
     int server_port_num = atoi (argv[1]);
-    server_sockfd = socket (af_inet, sock_stream, 0);
+    server_sockfd = socket (AF_INET, SOCK_STREAM, 0);
     if (server_sockfd < 0)
     {
         perror ("server: socket");
         return -1;
     }
 
-    server.sin_family = af_inet;
-    server.sin_addr.s_addr = inaddr_any;
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons (server_port_num);
     memset (&(server.sin_zero), 0, sizeof (server.sin_zero));
 
@@ -181,7 +190,7 @@ init_server_socket(int argc, char *argv[])
     }
 
     /* listen */
-    if (-1 == listen (server_sockfd, max_num_of_clients))
+    if (-1 == listen (server_sockfd, MAXNUMCLIENTS))
     {
         perror ("listen");
         return -1;    
@@ -210,7 +219,7 @@ new_connection(fd_set *master_fds, int *fdmax)
     }
     else
     {
-        fd_set (newfd, master_fds);    // add to master set
+        FD_SET (newfd, master_fds);    // add to master set
         if (newfd > *fdmax) {
             /* update the max fd */
             *fdmax = newfd;
@@ -220,7 +229,7 @@ new_connection(fd_set *master_fds, int *fdmax)
         new_node->client_message[0] = '\0';
         new_node->group_id = 0;
         list_add (&g_head, &new_node);
-        printf ("\ngot a connection from (%s , %d)\n",
+        printf ("\nNew client joined (%s , %d)\n",
                 inet_ntoa (client_addr.sin_addr),
                 ntohs (client_addr.sin_port));
     }
