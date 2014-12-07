@@ -7,34 +7,77 @@
 #include "server_db.h"
 
 
-void *periodic_print_thread_fn(void *t_args)
+static void print_grps_info()
 {
 	struct tm *tm_info;
 	time_t timer;
 	char time_buf[MAXDATEBUF];
+	struct group_info_node *grp_node = db.group_list;
+	struct client_info_list_node *cl_node;
 
+	time(&timer);
+	tm_info = localtime(&timer);
+	strftime(time_buf, MAXDATEBUF, "%Y-%m-%d %H:%M:%S", tm_info);
+
+	while (grp_node) {
+
+		printf("\n[Grp_id:%d]\nMembers:", grp_node->grp_id);
+		cl_node = grp_node->members;	
+
+		while (cl_node) {
+			printf("client_fd:%d, ",cl_node->data->socket);
+			cl_node = cl_node->next;
+		}	
+	
+		grp_node = grp_node->next;
+	}
+
+	fflush(stdout);
+	
+}
+
+static void print_clients_info() 
+{
+	struct tm *tm_info;
+	time_t timer;
+	char time_buf[MAXDATEBUF];
 	struct client_info_list_node *node;
 
+	node = db.client_list;
+
+	printf("\n\n10 seconds elapsed. Printing clients status\n");
+	time(&timer);
+	tm_info = localtime(&timer);
+	strftime(time_buf, MAXDATEBUF, "%Y-%m-%d %H:%M:%S", tm_info);
+
+	while(node)
+	{
+
+		if (strlen(node->data->buffer) <= 1) {
+			node = node->next;
+			continue;	
+		}
+
+		printf("[%s] Client (%s,%d) buffer:[%s]\n",
+				time_buf,
+				node->data->hostname,
+				node->data->port,
+				node->data->buffer);
+		node = node->next;
+	}
+
+}
+
+
+void *periodic_print_thread_fn(void *t_args)
+{
 	while(1)
 	{
 		sleep(10);
-		printf("\n\n10 seconds elapsed. Printing clients status\n");
 
-		node = db.client_list;
+		print_clients_info();
+		print_grps_info();
 
-		time(&timer);
-		tm_info = localtime(&timer);
-		strftime(time_buf, MAXDATEBUF, "%Y-%m-%d %H:%M:%S", tm_info);
-				
-		while(node)
-		{
-			printf("[%s] Client (%s,%d) buffer:[%s]\n",
-					time_buf,
-					node->data->hostname,
-					node->data->port,
-					node->data->buffer);
-			node = node->next;
-		}
 	}
 	pthread_exit(NULL);
 
@@ -44,11 +87,7 @@ void *periodic_print_thread_fn(void *t_args)
 void *user_interactor_thread_fn(void *t_args)
 {
 
-	while(1)
-	{
-		sleep(10);
-		task_menu();	
+	task_menu();	
 
-	}
 	pthread_exit(NULL);
 }

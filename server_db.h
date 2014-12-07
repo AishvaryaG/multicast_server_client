@@ -33,8 +33,13 @@ struct client_info_list_node {
 	struct client_info_list_node *next;
 };
 
+
+
+
+
 struct global_db {
 	struct client_info_list_node *client_list;
+	struct group_info_node *group_list;
 };
 
 
@@ -43,25 +48,18 @@ struct global_db {
 /* When a new client joins, with list of groups */
 void db_client_new(struct client_info_data *data);
 void db_client_del(struct client_info_data *data);
-
-
 struct client_info_data *db_get_client_by_socket(int sock_id);
 
-
-/* When a client moves from free list to busy list */
-int db_client_make_busy(struct client_info_data *data, int grp_id);
-int db_client_make_free(struct client_info_data *data, int grp_id);
 
 /* When a client dies, remove it from global list 
  * and also from other group free&busy lists */
 
+
 /*  
----------------------------------
-| Group1   					 |
-| Task-A   					 |
-| free_clients -> [cl1]->[cl2]-# |
-| busy_clients -> [cl3]->[cl4]-# |
----------------------------------
+---------------------------------------
+| Group1   					          |
+| Members -> [client 1] -> [client 2] |
+---------------------------------------
 			|
 			|
 			Y
@@ -69,13 +67,16 @@ int db_client_make_free(struct client_info_data *data, int grp_id);
 */
 
 
-struct group_info {
-	int group_id;
-	char desc[MAXDESC];
-	task_type_t task_type;
-	struct client_info_list_node *free_clients;
-	struct client_info_list_node *busy_clients;
+struct group_info_node {
+	int grp_id;
+	struct client_info_list_node *members;
+	struct group_info_node *next;
 };
+
+void db_group_new(int group_id);
+int db_group_add_member(int group_id, 
+				struct client_info_data *client_info);
+struct group_info_node *db_get_group_by_grp_id(int grp_id);
 
 
 /* Task management */
