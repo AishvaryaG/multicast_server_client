@@ -4,7 +4,7 @@ CCFLAGS = -g -Wall -I.
 LIBS = -lpthread
 
 SERVER_OBJS = server_threads.o server.o server_pkt_handlers.o server_tasks.o server_db.o
-CLIENT_OBJS = client.o
+CLIENT_OBJS = client.o client_utils.o
 
 all: server client
 
