@@ -1,10 +1,15 @@
 #include "server.h"
+#include "server_db.h"
+#include "server_pkt_handlers.h"
+
 #include <pthread.h>
-void join_handler(
+
+
+void join_handler(struct client_info_data *client_info,
 		const char *payload, const size_t pyld_size, const pkt_type type)
 {
 
-	printf("TODO:Client joined!\n");
+	printf("TODO:Client joined! Add Groups!!!\n");
 #if 0
 	printf("Client (fd: %d) requests to join group:\"%s\"\n", args->client_sockfd,
 			payload);
@@ -23,18 +28,13 @@ void join_handler(
 	}
 #endif
 }
-void hello_handler(
+void hello_handler(struct client_info_data *client_info,
 		const char *payload, const size_t pyld_size, const pkt_type type)
 {
-	printf("TODO:Hello received!\n");
-#if 0
-	printf("Client (fd: %d) sent a message...\n", args->client_sockfd);
-	strncat(args->client_info->client_message,payload, pyld_size);
-	strcat(args->client_info->client_message, ", ");
-	printf("exiting \n");
-#endif
+	strncat(client_info->buffer, payload, pyld_size);
+	strcat(client_info->buffer, ", ");
 }
-void quit_handler()
+void quit_handler(struct client_info_data *client_info)
 {
 	pthread_exit(NULL);
 }

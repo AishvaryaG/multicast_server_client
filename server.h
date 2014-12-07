@@ -3,63 +3,17 @@
 
 #include "common_hdr.h"
 
-/* Server Client Group Mgmt */
-typedef struct group_info
-{
-    int client_sockfd;
-    char client_message[MAXBUFFER];
-    int group_id;
-    struct group_info *next;
-}group_info;
-
-typedef struct
-{
-    int client_sockfd;
-    group_info *client_info;
-} thread_arguments;
-
-extern int num_of_clients[2];
-extern thread_arguments thread_args[MAXNUMCLIENTS];
-extern pthread_mutex_t num_of_active_clients_lock;
-extern group_info *g_head;
-
 /* Thread functions */
 void *client_handler(void *t_args);
 void *periodic_print_t(void *t_args);
 
-
-/* Server packet handlers */
-void join_handler(
-			const char *payload, const size_t pyld_size, 
-			const pkt_type type);
-
-void hello_handler(
-			const char *payload, const size_t pyld_size, 
-			const pkt_type type);
-
-void quit_handler();
-
 /* Thread functions */
-extern void * periodic_print_thread_fn(void *t_args);
-extern void * user_interactor_thread_fn(void *t_args);
+extern void *periodic_print_thread_fn(void *t_args);
+extern void *user_interactor_thread_fn(void *t_args);
 void * client_handler_thread(void *t_args);
-
-/* Task management */
-
-struct task_info {
-	int task_id;
-	task_type_t task_type;
-	char desc[MAXDESC];
-	struct timeval start_time;
-	struct timeval end_time;
-	void *input_dataset;
-};
 
 
 /* Tasks */
 void task_menu();
-
-
-
 
 #endif

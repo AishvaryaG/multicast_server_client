@@ -14,20 +14,22 @@
 
 #include "common_hdr.h"
 #include "server.h"
+#include "server_db.h"
+#include "server_pkt_handlers.h"
 
 
 /* global variables */
-group_info *g_head = NULL;
-int num_of_clients[2] = { 0, 0 };
+
+struct global_db db; 
+
 pthread_t periodic_thread;
 pthread_t user_interactor_thread;
 int server_sockfd;
 
-void list_add (group_info ** head, group_info ** new_node);
-void init_periodic_print();
-void init_user_interactor();
-static int init_server_socket(int argc, char *argv[]);
+static void init_periodic_print();
+static void init_user_interactor();
 
+static int init_server_socket(int argc, char *argv[]);
 static void new_connection(fd_set *master_fds, int *fdmax);
 static void handle_client_recv(fd_set *master, int sock_id);
 
@@ -41,26 +43,25 @@ main (int argc, char *argv[])
     int fdmax;
     int ret;
 
-    init_periodic_print();
-    init_user_interactor();
+	init_global_db();
     ret = init_server_socket(argc, argv);
     if (0 != ret) {
         fprintf(stderr, "unable to create socket!\n");
         exit(1);    
     }
 
+	/* Run two other threads */
+    init_periodic_print();
+    init_user_interactor();
+
     FD_ZERO (&master);
-    FD_ZERO (&read_fds);
-    // add the listener to the master set
     FD_SET (server_sockfd, &master);
     fdmax = server_sockfd;
-    g_head = NULL;
 
-    while (1)
-    {
+    while (1) {
         read_fds = master;
-        if (select (fdmax + 1, &read_fds, NULL, NULL, NULL) == -1)
-        {
+        if (select (fdmax + 1, &read_fds, 
+				NULL, NULL, NULL) == -1) {
             perror ("select");
             exit (4);
         }
@@ -77,30 +78,14 @@ main (int argc, char *argv[])
     return 0;
 }
 
-void
-list_add (group_info ** head, group_info ** new_node)
-{
-    group_info *temp;
-    if (*head == NULL)
-    {
-        *head = *new_node;
-        return;
-    }
-
-    /* add at head */
-    temp = *head;
-    (*new_node)->next = temp;
-    *head = *new_node;
-}
-
-void 
+static void 
 init_periodic_print()
 {
     pthread_create (&periodic_thread, NULL, periodic_print_thread_fn,
             NULL);
 }
 
-void 
+static void 
 init_user_interactor()
 {
     pthread_create (&user_interactor_thread, NULL, user_interactor_thread_fn,
@@ -115,6 +100,7 @@ handle_client_recv(fd_set *master, int sock_id)
     size_t rx_sz;
     pkt_type type;
     int ret;
+	struct client_info_data *client_info = NULL;
 
     printf ("recv from the client socket: %d\n", sock_id);
     ret = pkt_recv (sock_id, &rx_buffer, &rx_sz, &type);
@@ -128,32 +114,35 @@ handle_client_recv(fd_set *master, int sock_id)
          * if returns 0 client has disconnected,
          * else it will returns the number of bytes received
          */
-        if (-1 == ret || !rx_buffer)
-        {
+        if (-1 == ret || !rx_buffer) {
             perror ("recv");
             close (sock_id);
             return;
         }
         //printf("one packet received!. pkt type: %d payload size: %zu\n", type, rx_sz);
 
+		client_info = db_get_client_by_socket(sock_id);	
+
+		//TODO: Identify the client based on socket
+		
+
         switch (type)
         {
             case MSG_JOIN:
-                join_handler(rx_buffer, rx_sz, type);
+                join_handler(client_info, rx_buffer, rx_sz, type);
                 break;
 
             case MSG_HELLO:
-                hello_handler(rx_buffer, rx_sz, type);
+                hello_handler(client_info, rx_buffer, rx_sz, type);
                 break;
 
             case MSG_QUIT:
-                quit_handler(); 
+                quit_handler(client_info); 
                 break;
 
             default:
                 printf ("unknown packet!!!!");
         }
-        printf ("buffer = %s\n", rx_buffer);
         free (rx_buffer);
     }
 }
@@ -206,31 +195,38 @@ new_connection(fd_set *master_fds, int *fdmax)
 {
     int newfd;
     struct sockaddr_in client_addr;
-    group_info *new_node = g_head;
     socklen_t sin_size;
 
+	struct client_info_data *data;
+	data = malloc(sizeof(*data));
+	if (!data) {
+		perror("new_connection: Out of memory!\n");
+		exit(1);
+	}
+
+	memset(data, 0, sizeof(*data));
+
     sin_size = sizeof (client_addr);
-    newfd =    accept (server_sockfd, (struct sockaddr *) &client_addr,
+    newfd = accept (server_sockfd, (struct sockaddr *) &client_addr,
             &sin_size);
-    if (newfd == -1)
-    {
+    if (newfd == -1) {
         perror ("accept");
         return;
-    }
-    else
-    {
-        FD_SET (newfd, master_fds);    // add to master set
+    } else {
+        FD_SET (newfd, master_fds); // now we'll also select() on this fd 
         if (newfd > *fdmax) {
-            /* update the max fd */
+            /* max fd might have changed */
             *fdmax = newfd;
         }
-        new_node = (group_info *) malloc (sizeof (group_info));
-        new_node->client_sockfd = newfd;
-        new_node->client_message[0] = '\0';
-        new_node->group_id = 0;
-        list_add (&g_head, &new_node);
+
+		data->socket = newfd;
+		strncpy(data->hostname, inet_ntoa(client_addr.sin_addr), 
+				MAXHOSTNAME);
+		data->pkt_count = 0;
+		data->port = ntohs(client_addr.sin_port);
+		db_client_new(data);
         printf ("\nNew client joined (%s , %d)\n",
-                inet_ntoa (client_addr.sin_addr),
-                ntohs (client_addr.sin_port));
+                data->hostname,
+                data->port);
     }
 }
