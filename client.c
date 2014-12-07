@@ -11,6 +11,7 @@
 #include <signal.h>
 
 #include "common_hdr.h"
+#include "client_utils.h"
 
 
 /* Global data structures */
@@ -22,11 +23,17 @@ static void sigint_handler(int s);
 static void init_signal_handler();
 static int init_socket(int argc, char *argv[]);
 
+
+static void join_grps(int *grp_list, int grp_list_len);
+
 int 
 main(int argc, char *argv[])
 {
     int numbytes;
     char buf[MAXBUFFER];    
+
+	int *grp_list;
+	int grp_list_len;
 
     init_signal_handler();
 
@@ -35,12 +42,10 @@ main(int argc, char *argv[])
         exit(1);
     }
 
-    printf("Select the multicast group which you want to join as one of these %s : ", argv[3]);
-    scanf("%s", buf);
-    numbytes = pkt_send(sockfd, MSG_JOIN, buf,strlen(buf));
+	util_get_int_list_from_csv(argv[3], &grp_list,
+				&grp_list_len);
 
-    if (-1 == numbytes)
-        perror("send");
+	join_grps(grp_list, grp_list_len);
 
     while (1) {
         printf("Type a message. (Max 50 chars):\n");
@@ -54,6 +59,37 @@ main(int argc, char *argv[])
     return 0;
 }
 
+
+static void join_grps(int *grp_list, int grp_list_len)
+{
+
+	struct msg_join_grp_pld *pld;
+	int numbytes;
+	int i;
+	
+	pld = malloc(sizeof(*pld));
+	memset(pld, 0, sizeof(*pld));
+
+	if (!pld) {
+		perror("Ran out of memory!");
+		exit(1);
+	}
+
+
+	for (i = 0; i < grp_list_len; i++) {
+		printf("Joining group %d\n", grp_list[i]);
+		pld->grp_id = htons(grp_list[i]);	
+    	numbytes = pkt_send(sockfd, MSG_JOIN_GRP, 
+						pld, sizeof(*pld));
+		if (numbytes == -1) {
+			printf("Error in sending MSG_JOIN_GRP");
+		}	
+	}
+
+
+	free(pld);
+}
+
 static int 
 init_socket(int argc, char *argv[]) 
 {
@@ -63,7 +99,7 @@ init_socket(int argc, char *argv[])
 
     if (argc != 4) {
         fprintf(stderr,"usage: %s <server-port-num> <server-hostname>"
-                " <comma-separated-groups>\n",
+                " <list-of-groups-to-join-comma-separated>\n",
                 argv[0]);
         return -1; 
     }
@@ -96,7 +132,7 @@ init_socket(int argc, char *argv[])
     }
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
     printf("client: connecting to %s\n", s);
-    freeaddrinfo(servinfo); // all done with this structure
+    freeaddrinfo(servinfo); 
 
     return 0;
 }

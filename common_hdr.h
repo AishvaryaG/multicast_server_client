@@ -19,8 +19,8 @@
 
 
 typedef enum {
-	MSG_JOIN = 1,
-	MSG_HELLO,
+	MSG_HELLO = 1,
+	MSG_JOIN_GRP,
 	MSG_HEARTBEAT,
 	MSG_GET_GRP_LIST_FOR_TASK,
 	MSG_GET_GRP_LIST_FOR_TASK_RESP,
@@ -32,9 +32,16 @@ typedef enum {
 	MSG_QUIT,
 } pkt_type;
 
+
+/* Payloads */
+
+struct msg_join_grp_pld {
+	int grp_id;
+};
+
+
 typedef enum {
 	TASK_SUM = 1,
-	TASK_PRIME,
 } task_type_t;
 
 
@@ -46,7 +53,7 @@ struct pkt {
 } PACKED;
 
 
-static inline size_t pkt_send(int fd, pkt_type type, char *data, size_t data_size)
+static inline size_t pkt_send(int fd, pkt_type type, void *data, size_t data_size)
 {
 	struct pkt *p = NULL;
 	size_t sz;
@@ -85,7 +92,7 @@ static inline size_t pkt_send(int fd, pkt_type type, char *data, size_t data_siz
 	return data_size;
 } 
 
-static inline int pkt_recv(int fd, char **rx_buf, size_t *data_size, pkt_type *type)
+static inline int pkt_recv(int fd, void **rx_buf, size_t *data_size, pkt_type *type)
 {
 	*rx_buf = NULL;
 

@@ -96,7 +96,7 @@ init_user_interactor()
 static void 
 handle_client_recv(fd_set *master, int sock_id)
 {
-    char *rx_buffer = NULL;
+    void *rx_buffer = NULL;
     size_t rx_sz;
     pkt_type type;
     int ret;
@@ -128,7 +128,7 @@ handle_client_recv(fd_set *master, int sock_id)
 
         switch (type)
         {
-            case MSG_JOIN:
+            case MSG_JOIN_GRP:
                 join_handler(client_info, rx_buffer, rx_sz, type);
                 break;
 

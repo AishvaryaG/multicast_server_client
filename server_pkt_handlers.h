@@ -6,11 +6,11 @@
 
 /* Server packet handlers */
 void join_handler(struct client_info_data *client_info,
-			const char *payload, const size_t pyld_size, 
+			const void *payload, const size_t pyld_size, 
 			const pkt_type type);
 
 void hello_handler(struct client_info_data *client_info,
-			const char *payload, const size_t pyld_size, 
+			const void *payload, const size_t pyld_size, 
 			const pkt_type type);
 
 void quit_handler(struct client_info_data *client_info);
