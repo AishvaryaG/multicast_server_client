@@ -16,4 +16,7 @@ void * client_handler_thread(void *t_args);
 /* Tasks */
 void task_menu();
 
+
+void quit_app();
+
 #endif

@@ -9,20 +9,24 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include "common_hdr.h"
-#include "client_utils.h"
+#include "common_utils.h"
+#include "client_pkt_handlers.h"
 
 
 /* Global data structures */
 int sockfd;
+int busy_state;
+pthread_t client_recv_thread;
 
 /* Prototypes */
 static void *get_in_addr(struct sockaddr *sa);
 static void sigint_handler(int s);
 static void init_signal_handler();
 static int init_socket(int argc, char *argv[]);
-
+static void init_client_recv_thread();
 
 static void join_grps(int *grp_list, int grp_list_len);
 
@@ -37,6 +41,8 @@ main(int argc, char *argv[])
 
     init_signal_handler();
 
+	busy_state = FALSE;
+
     if (init_socket(argc, argv) != 0) {
         fprintf(stderr,"Unable to setup client (socket, bind, listen)\n");
         exit(1);
@@ -46,6 +52,9 @@ main(int argc, char *argv[])
 				&grp_list_len);
 
 	join_grps(grp_list, grp_list_len);
+
+
+	init_client_recv_thread();
 
     while (1) {
         printf("Type a message. (Max 50 chars):\n");
@@ -169,3 +178,15 @@ init_signal_handler()
         exit(1);
     }   
 }
+
+static void 
+init_client_recv_thread()
+{
+    pthread_create (&client_recv_thread, NULL, 
+		client_recv_thread_fn,
+        NULL);
+}
+
+
+
+

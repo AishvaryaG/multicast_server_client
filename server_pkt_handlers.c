@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <netinet/in.h>
 
-
 void join_handler(struct client_info_data *client_info,
 		const void *payload, const size_t pyld_size, const pkt_type type)
 {

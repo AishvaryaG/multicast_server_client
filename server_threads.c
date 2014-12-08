@@ -21,7 +21,7 @@ static void print_grps_info()
 
 	while (grp_node) {
 
-		printf("\n[Grp_id:%d]\nMembers:", grp_node->grp_id);
+		printf("\n>>%s:[Grp_id:%d]\nMembers:", time_buf, grp_node->grp_id);
 		cl_node = grp_node->members;	
 
 		while (cl_node) {
@@ -45,7 +45,6 @@ static void print_clients_info()
 
 	node = db.client_list;
 
-	printf("\n\n10 seconds elapsed. Printing clients status\n");
 	time(&timer);
 	tm_info = localtime(&timer);
 	strftime(time_buf, MAXDATEBUF, "%Y-%m-%d %H:%M:%S", tm_info);
@@ -73,9 +72,10 @@ void *periodic_print_thread_fn(void *t_args)
 {
 	while(1)
 	{
-		sleep(10);
-
+		sleep(20);
+		printf("\n\n1 minute elapsed. Printing clients status\n");
 		print_clients_info();
+		printf("\n\nPrinting group status\n");
 		print_grps_info();
 
 	}

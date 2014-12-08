@@ -16,7 +16,13 @@
 #define MAXDESC 2048
 #define MAGIC 0xCA0000CB
 #define MAXDATEBUF 25
+#define MAXFILENAME 25
 
+
+enum truth_vals{
+	FALSE = 0,
+	TRUE = 1,
+};
 
 typedef enum {
 	MSG_HELLO = 1,
@@ -74,8 +80,10 @@ static inline size_t pkt_send(int fd, pkt_type type, void *data, size_t data_siz
 	p->type = type;
 	p->len = data_size;
 	memcpy(p->data, data, data_size);
+#ifdef LOG
 	printf("Sending pkt size:%zu payload_len: %zu pkt type:%d\n",
 			sz, p->len, p->type);
+#endif
 
 	do {
 		data_sent = send(fd, (const char *) p + offset, sz, NOFLAGS);
@@ -97,6 +105,7 @@ static inline int pkt_recv(int fd, void **rx_buf, size_t *data_size, pkt_type *t
 	*rx_buf = NULL;
 
 	// first receive only as much as to get type & length
+
 	struct pkt dummy;
 	size_t pkt_len;
 	size_t payload_len;
@@ -104,8 +113,11 @@ static inline int pkt_recv(int fd, void **rx_buf, size_t *data_size, pkt_type *t
 	int offset = 0;
 	
 	pkt_len = recv(fd, &dummy, sizeof(struct pkt), NOFLAGS);
+
+#ifdef LOG
 	printf("Rxbytes: %zu, magic: %x pkt_type: %d, payload_len: %zu\n", 
 				pkt_len, dummy.magic, dummy.type, dummy.len);
+#endif
 
 	*type = dummy.type;
 	payload_len = dummy.len;

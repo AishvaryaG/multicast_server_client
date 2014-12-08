@@ -35,7 +35,6 @@ _COMMON_HDR_H	common_hdr.h	2;"	d
 _SERVER_DB_H	server_db.h	2;"	d
 _SERVER_PKT_HANDLERS_H	server_pkt_handlers.h	2;"	d
 buffer	server_db.h	/^	char buffer[MAXBUFFER];$/;"	m	struct:client_info_data
-busy_clients	server_db.h	/^	struct client_info_list_node *busy_clients;$/;"	m	struct:group_info	typeref:struct:group_info::client_info_list_node
 client_info_data	server_db.h	/^struct client_info_data {$/;"	s
 client_info_list_node	server_db.h	/^struct client_info_list_node {$/;"	s
 client_list	server_db.h	/^	struct client_info_list_node *client_list;$/;"	m	struct:global_db	typeref:struct:global_db::client_info_list_node
@@ -45,15 +44,17 @@ db	server.c	/^struct global_db db; $/;"	v	typeref:struct:global_db
 db_client_del	server_db.c	/^void db_client_del(struct client_info_data *data)$/;"	f
 db_client_new	server_db.c	/^void db_client_new(struct client_info_data *data)$/;"	f
 db_get_client_by_socket	server_db.c	/^db_get_client_by_socket(int sock_id)$/;"	f
-desc	server_db.h	/^	char desc[MAXDESC];$/;"	m	struct:group_info
+db_get_group_by_grp_id	server_db.c	/^struct group_info *db_get_group_by_grp_id(int grp_id)$/;"	f
+db_group_add_member	server_db.c	/^int db_group_add_member(int group_id, $/;"	f
+db_group_new	server_db.c	/^void db_group_new(int group_id)$/;"	f
 desc	server_db.h	/^	char desc[MAXDESC];$/;"	m	struct:running_task_info
 end_time	server_db.h	/^	struct timeval end_time;$/;"	m	struct:running_task_info	typeref:struct:running_task_info::timeval
-free_clients	server_db.h	/^	struct client_info_list_node *free_clients;$/;"	m	struct:group_info	typeref:struct:group_info::client_info_list_node
 get_in_addr	client.c	/^*get_in_addr(struct sockaddr *sa)$/;"	f	file:
 global_db	server_db.h	/^struct global_db {$/;"	s
-group_id	server_db.h	/^	int group_id;$/;"	m	struct:group_info
-group_info	server_db.h	/^struct group_info {$/;"	s
+group_info_node	server_db.h	/^struct group_info_node {$/;"	s
+group_list	server_db.h	/^	struct group_info_node *group_list;$/;"	m	struct:global_db	typeref:struct:global_db::group_info_node
 grp_id	common_hdr.h	/^	int grp_id;$/;"	m	struct:msg_join_grp_pld
+grp_id	server_db.h	/^	int grp_id;$/;"	m	struct:group_info_node
 handle_client_recv	server.c	/^handle_client_recv(fd_set *master, int sock_id)$/;"	f	file:
 hello_handler	server_pkt_handlers.c	/^void hello_handler(struct client_info_data *client_info,$/;"	f
 hostname	server_db.h	/^	char hostname[MAXHOSTNAME];$/;"	m	struct:client_info_data
@@ -71,9 +72,11 @@ len	common_hdr.h	/^	size_t	 len;$/;"	m	struct:pkt
 magic	common_hdr.h	/^	int magic;$/;"	m	struct:pkt
 main	client.c	/^main(int argc, char *argv[])$/;"	f
 main	server.c	/^main (int argc, char *argv[])$/;"	f
+members	server_db.h	/^	struct client_info_list_node *members;$/;"	m	struct:group_info_node	typeref:struct:group_info_node::client_info_list_node
 msg_join_grp_pld	common_hdr.h	/^struct msg_join_grp_pld {$/;"	s
 new_connection	server.c	/^new_connection(fd_set *master_fds, int *fdmax)$/;"	f	file:
 next	server_db.h	/^	struct client_info_list_node *next;$/;"	m	struct:client_info_list_node	typeref:struct:client_info_list_node::client_info_list_node
+next	server_db.h	/^	struct group_info_node *next;$/;"	m	struct:group_info_node	typeref:struct:group_info_node::group_info_node
 periodic_print_thread_fn	server_threads.c	/^void *periodic_print_thread_fn(void *t_args)$/;"	f
 periodic_thread	server.c	/^pthread_t periodic_thread;$/;"	v
 pkt	common_hdr.h	/^struct pkt {$/;"	s
@@ -91,7 +94,6 @@ sockfd	client.c	/^int sockfd;$/;"	v
 start_time	server_db.h	/^	struct timeval start_time;$/;"	m	struct:running_task_info	typeref:struct:running_task_info::timeval
 task_id	server_db.h	/^	int task_id;$/;"	m	struct:running_task_info
 task_menu	server_tasks.c	/^void task_menu()$/;"	f
-task_type	server_db.h	/^	task_type_t task_type;$/;"	m	struct:group_info
 task_type	server_db.h	/^	task_type_t task_type;$/;"	m	struct:running_task_info
 task_type_t	common_hdr.h	/^} task_type_t;$/;"	t	typeref:enum:__anon2
 type	common_hdr.h	/^	pkt_type type;$/;"	m	struct:pkt

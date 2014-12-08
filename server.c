@@ -230,3 +230,11 @@ new_connection(fd_set *master_fds, int *fdmax)
                 data->port);
     }
 }
+
+
+void quit_app() 
+{
+	//TODO: close all connections
+	printf("\nGracefully exiting!");
+	exit(0);
+}
